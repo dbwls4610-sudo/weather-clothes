@@ -1,0 +1,27 @@
+구조는 참고하는데 ui는 다르게 하자
+C:\vibe\prj에 2개의 폴더가 있다
+하나는 참고용이고 다른 하나는 내가 만들어나갈 project이다
+C:\vibe\prj\jeju-ip-sample-solution를 참고하고 
+C:\vibe\prj\project 내에 vite+react 코드를 생성해라.
+three.js를 추가하여 3차원 web을 만들어라 
+
+제공하는 스타터(jeju-ip-starter.zip — Vite + React + Router + Store + Bootstrap + Supabase 기본 골격)로 시작해서, 
+supabase db 연결동작 확인부터 하고 단계마다 동작을 확인하며 기능을 하나씩 붙입니다. 
+최종 결과물은 제주 콘텐츠·문화 IP를 주제로 공공데이터 API를 3개 이상 쓰고, 그 API들을 도구로 쓰는 AI 에이전트가 들어간 웹앱입니다. 마지막에 Vercel에 배포합니다.
+
+store => 공유하려는 내용
+server =
+client
+api
+Bootstrap (디자인)
+router (이동하려는 경로를 적는다)
+
+코드가 생성되었으면
+클로드한테 github 주소를 알려주고 발표자료를 생성하거나
+README.md도 이쁘게 만들어라 
+
+
+-----------------------
+옷차림 카드가 기온 구간별 옷과 상황별 팁(우산, 바람막이, 일교차 겉옷 등)을 보여줍니다.
+
+색 확인 페이지 배포 전에 지우기 

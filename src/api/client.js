@@ -22,8 +22,11 @@ export async function post(path, body) {
   }))
 }
 
-// TODO: 날씨 조회 등 실제 API 함수는 여기에 추가
-// 예) export const fetchWeather = (place = '제주시') => get(`/api/weather?place=${encodeURIComponent(place)}`)
+// 위도·경도에 맞는 시간별 날씨 (서버 함수 /api/weather → 기상청 단기예보)
+export const fetchWeather = (lat, lon) => get(`/api/weather?lat=${lat}&lon=${lon}`)
+
+// 지난 날짜(어제까지)의 관측 날씨 (서버 함수 /api/observed → 기상청 종관기상관측 ASOS 시간자료)
+export const fetchObserved = (date, lat, lon) => get(`/api/observed?date=${date}&lat=${lat}&lon=${lon}`)
 
 // 동작 확인용
 export const ping = () => get('/api/hello')

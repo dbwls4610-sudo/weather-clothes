@@ -4,3 +4,100 @@ body { font-family: 'Pretendard', system-ui, sans-serif; background: var(--bs-te
 .chat-box .msg { max-width: 80%; padding: .6rem .9rem; border-radius: 1rem; margin-bottom: .5rem; }
 .chat-box .msg.assistant { background: var(--bs-secondary-bg); }
 .chat-box .msg.user { background: var(--bs-primary); color: #fff; margin-left: auto; }
+
+/* 추천 옷 그림 카드 */
+.clothes-card {
+  width: 84px; padding: .6rem .25rem; text-align: center;
+  background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: .75rem;
+}
+.clothes-emoji { font-size: 2rem; line-height: 1.2; }
+
+/* 옷차림 카드 페이지: 왼쪽 세로선(더움 → 추움)을 따라 카드가 이어짐 */
+.tier-list { position: relative; padding-left: 36px; }
+.tier-line { position: absolute; left: 10px; top: 8px; bottom: 8px; width: 6px; border-radius: 3px; }
+.tier-item { position: relative; margin-bottom: 1rem; }
+.tier-dot {
+  position: absolute; left: -33px; top: 18px; width: 20px; height: 20px; border-radius: 50%;
+  border: 3px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .12);
+}
+
+/* 시간별 예보 슬라이드: 옆으로 밀어서 보고, 칸마다 멈춰요 */
+.hour-slider { display: flex; gap: 0.5rem; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 0.5rem; }
+.hour-slider > div { flex: 0 0 4.5rem; scroll-snap-align: start; }
+
+/* 오늘 입은 옷 사진 */
+.outfit-photo { display: block; width: 100%; max-width: 320px; max-height: 420px; object-fit: cover; border-radius: 0.5rem; }
+.outfit-drop { width: 100%; max-width: 320px; padding: 2rem 1rem; border: 2px dashed #9ec9c0; border-radius: 0.5rem; background: transparent; color: #5a6c68; }
+.outfit-drop:hover { background: rgba(120, 194, 173, 0.12); }
+
+/* 마이페이지 사진 목록 */
+.my-photo-btn { display: block; width: 100%; padding: 0; border: 0; background: transparent; }
+.my-photo { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 0.375rem 0.375rem 0 0; background: #eef2f1; }
+
+/* 마이페이지 달력 */
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.cal-cell { position: relative; aspect-ratio: 1; padding: 0; overflow: hidden; border: 1px solid #dee2e6; border-radius: 0.375rem; background: #fff; }
+.cal-today { border: 2px solid #78c2ad; }
+button.cal-cell { cursor: pointer; }
+button.cal-cell:hover { filter: brightness(0.92); }
+.cal-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cal-num { position: absolute; top: 2px; left: 4px; font-size: 0.75rem; line-height: 1; color: #6c757d; }
+.cal-has .cal-num { padding: 1px 4px; border-radius: 0.25rem; background: rgba(255, 255, 255, 0.85); color: #212529; }
+.cal-meta { position: absolute; right: 3px; bottom: 3px; display: flex; align-items: center; gap: 4px; padding: 2px 5px; border-radius: 0.5rem; background: rgba(255, 255, 255, 0.88); font-size: 0.9rem; color: #3d8b78; }
+.feel-dot { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 50%; }
+.cal-empty { color: #adb5bd; }
+.cal-empty:hover { background: rgba(120, 194, 173, 0.15); color: #3d8b78; }
+.cal-plus { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; opacity: 0; transition: opacity 0.15s; }
+.cal-empty:hover .cal-plus, .cal-empty:focus-visible .cal-plus { opacity: 1; }
+.cal-future { background: #f8f9fa; border-style: dashed; }
+
+/* 후기 글: 줄바꿈 유지, 긴 글은 카드 안에서 세 줄까지만 */
+.note-text { white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.note-text-full { white-space: pre-wrap; }
+
+/* 과거에 입은 옷 슬라이드: 옆으로 밀어서 보고, 카드마다 멈춰요 */
+.past-slider { display: flex; gap: 0.75rem; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 0.5rem; }
+.past-slider > div { flex: 0 0 11rem; scroll-snap-align: start; }
+.feel-row { min-height: 1.5rem; }
+
+/* ── 모바일(폰) 화면 맞춤 ───────────────────────────────── */
+
+/* 마우스가 없는 화면(터치)에서는 "올려 보면 + 가 나오는" 동작이 없으니, 빈 날짜에 + 를 옅게 항상 보여줌 */
+@media (hover: none) {
+  .cal-empty .cal-plus { opacity: 0.35; }
+}
+
+@media (max-width: 575.98px) {
+  /* 달력: 화면 가로를 꽉 채우고(좌우 여백 제거), 칸을 세로로 길게 해서 사진이 더 크게 보이게 함 */
+  .cal-card { margin-left: -0.75rem; margin-right: -0.75rem; border-left: 0; border-right: 0; border-radius: 0; }
+  .cal-card .card-body { padding: 0.75rem 0.25rem; }
+  .cal-grid { gap: 2px; }
+  .cal-cell { aspect-ratio: 3 / 4; }
+  .cal-num { top: 2px; left: 2px; font-size: 0.75rem; padding: 0 3px; }
+  .cal-meta { right: 2px; bottom: 2px; gap: 3px; padding: 1px 4px; font-size: 0.8rem; }
+  .feel-dot { width: 0.7rem; height: 0.7rem; }
+
+  /* 입어 본 느낌 버튼: 2열 격자 — 더웠어요 두 개 / "딱 좋았어요"는 가운데 줄에서 가로로 꽉 차게 / 추웠어요 두 개 */
+  .feel-btns { display: grid !important; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .feel-btns .btn { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+  .feel-btns .btn:nth-child(3) { grid-column: 1 / -1; }   /* 가로로만 길게, 높이·글씨는 다른 버튼과 같음 */
+
+  /* 시간별 예보·비슷한 날 슬라이드: 다음 칸이 살짝 보여서 밀어 보라는 신호가 됨 */
+  .hour-slider > div { flex-basis: 4rem; }
+  .past-slider > div { flex-basis: 10.5rem; }
+
+  /* 사진은 화면 폭에 맞춤 */
+  .outfit-photo, .outfit-drop { max-width: 100%; }
+}
+
+/* 과거/오늘 최고·최저 두 줄: 숫자와 "/" 를 각자 정해진 폭의 칸 가운데에 놓고, 칸 사이 간격을 넉넉히 둠 */
+.temp-compare { display: grid; grid-template-columns: auto 2.75ch 1ch 2.75ch; column-gap: 0.375rem; justify-content: start; text-align: center; }
+.temp-num { font-variant-numeric: tabular-nums; }
+.temp-compare .diff-plus { color: var(--bs-danger) !important; }   /* 내일·이번주 카드의 최고 기온과 같은 색 */
+.temp-compare .diff-minus { color: var(--bs-primary) !important; }   /* 내일·이번주 카드의 최저 기온과 같은 색 */
+
+/* 상단 바의 앱 이름: 조금 더 굵게 */
+.navbar-brand { font-weight: 700; }
+
+/* 달력 위의 연도·월 선택 */
+.cal-select { width: auto; font-weight: 700; font-size: 1.15rem; padding-top: 0.45rem; padding-bottom: 0.45rem; }

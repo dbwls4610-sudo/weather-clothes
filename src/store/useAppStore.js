@@ -123,7 +123,7 @@ export const useAppStore = create((set, get) => ({
     )
   },
 
-  // Claude 대화 (로그인한 사람만, 하루 10번) — 페이지를 옮겨도 대화가 남도록 store 에 둡니다
+  // Claude 대화 (로그인한 사람만, 하루 20번) — 페이지를 옮겨도 대화가 남도록 store 에 둡니다
   messages: [],          // { role: 'user' | 'assistant', text }
   chatLoading: false,
   agentLeft: null,       // 오늘 남은 질문 횟수 (모르면 null)

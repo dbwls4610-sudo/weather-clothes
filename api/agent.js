@@ -17,7 +17,7 @@ let anthropic
 const getAnthropic = () => (anthropic ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }))
 
 // POST /api/agent  { message, history, context? }   헤더: Authorization: Bearer <로그인 토큰>
-//  · 로그인한 사용자만 쓸 수 있고, 하루 10번까지 (횟수는 Supabase 의 use_agent_quota 함수가 셉니다)
+//  · 로그인한 사용자만 쓸 수 있고, 하루 정해진 횟수까지 (횟수와 한도는 Supabase 의 use_agent_quota 함수가 셉니다. 지금은 20번)
 //  · Claude 는 날씨 도구(get_weather)를 불러서 실제 예보를 확인하고 답합니다 (server/agent.js)
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' })
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: missing ? '질문 횟수를 세는 기능이 아직 준비되지 않았어요 (supabase/schema.sql 을 실행해 주세요)' : quotaError.message })
   }
   const q = Array.isArray(quota) ? quota[0] : quota
-  if (!q?.ok) return res.status(429).json({ error: '오늘 질문 10번을 모두 사용했어요. 내일 다시 이용해 주세요.', remaining: 0 })
+  if (!q?.ok) return res.status(429).json({ error: `오늘 질문 ${q?.used_count ?? ''}번을 모두 사용했어요. 내일 다시 이용해 주세요.`, remaining: 0 })
 
   // 4) 대화 기록 정리: 글만 남기고 최근 10개만 (비용 절약, 이상한 값 차단)
   const past = (Array.isArray(history) ? history : [])

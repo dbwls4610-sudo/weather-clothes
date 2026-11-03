@@ -6,7 +6,7 @@ import PageHeader from '../components/PageHeader'
 import { placeLabel } from '../lib/places'
 import { useAppStore } from '../store/useAppStore'
 
-const DAILY_LIMIT = 10   // 서버(supabase/schema.sql)의 하루 질문 횟수와 같아야 해요
+const DAILY_LIMIT = 20   // 서버(supabase/schema.sql 의 agent_daily_limit)의 하루 질문 횟수와 같아야 해요
 const EXAMPLES = ['내일 뭐 입고 나갈까?', '오늘과 비슷한 날 내가 입었던 옷은?', '이번 주말 서귀포 옷차림 알려줘']
 
 export default function Agent() {

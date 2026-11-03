@@ -48,7 +48,7 @@ Claude에게 제주 옷차림을 물어보면, **Claude가 직접 날씨 조회 
 - **카드마다 한 문장 조언**: AI 답변 아래의 사진 카드에는 AI가 쓴 한 문장이 붙어요. 예) "이때보다 일교차가 커서 벗었다 입을 수 있는 겉옷을 추천해요" — 최고와 최저 차이를 둘 다 보고 쓰되, 숫자는 카드의 "차이" 줄에 있어서 문장은 간결하게 써요. (`comment_on_outfit_cards` 도구. AI가 안 보내면 기온 차이와 느낌으로 만든 기본 문장이 붙어요.)
 - **개인정보**: 도구는 본인의 로그인 권한으로 본인 기록만 읽어요. **옷 사진(파일 경로·주소 포함)은 가져오지도, AI에게 보내지도 않아요.** AI에게 가는 것은 날짜·기온·느낌·후기 글뿐이고, 사진은 화면(홈의 "비슷한 날" 카드, 마이페이지, AI 답변 아래 카드)에서 내 브라우저가 직접 불러와서만 보여요.
 - 도구가 돌려주는 **추천 옷차림은 앱 화면의 추천과 같은 규칙**(`src/lib/outfit.js`)이라, 화면과 AI의 답이 어긋나지 않아요.
-- **로그인한 사람만, 하루 10번까지** 쓸 수 있어요(한국 시간 기준, 화면에 오늘 남은 횟수가 보여요). 로그인 확인과 횟수 세기는 서버에서 해서 브라우저에서 우회할 수 없어요.
+- **로그인한 사람만, 하루 20번까지** 쓸 수 있어요(한국 시간 기준, 화면에 오늘 남은 횟수가 보여요). 로그인 확인과 횟수 세기는 서버에서 해서 브라우저에서 우회할 수 없어요.
 - Claude 키는 서버(`/api/agent`)에서만 써요. 모델은 환경변수 `ANTHROPIC_MODEL`로 고르고, 기본은 가볍고 저렴한 **Claude Haiku**예요.
 
 ### 4. 로그인 (오른쪽 위 "로그인")
@@ -129,7 +129,7 @@ npm run dev                      # 화면 + /api 서버 함수 (http://localhost
 1. Supabase 프로젝트를 만들고 위 두 값을 `.env.local`에 넣어요.
 2. 대시보드 → **SQL Editor** → New query에 `supabase/schema.sql` 내용을 붙여넣고 **Run**해요. (여러 번 실행해도 안전해요. 기능이 추가될 때 다시 실행하면 칸이 더해져요.)
    - 기록 테이블 `outfit_logs`(사진 경로·날씨·느낌·후기), 비공개 사진 보관함 `outfit-photos`, 내 것만 볼 수 있는 보안 규칙(RLS)이 만들어져요.
-   - AI 도우미의 하루 질문 횟수를 세는 테이블 `agent_usage`와 함수 `use_agent_quota`, `agent_quota_left`도 만들어져요. **이 SQL을 실행하지 않으면 AI 도우미가 동작하지 않아요.** (횟수를 바꾸려면 SQL의 `10`을 고쳐서 다시 실행하고, `src/pages/Agent.jsx`의 `DAILY_LIMIT`도 맞춰 주세요.)
+   - AI 도우미의 하루 질문 횟수를 세는 테이블 `agent_usage`와 함수 `use_agent_quota`, `agent_quota_left`도 만들어져요. **이 SQL을 실행하지 않으면 AI 도우미가 동작하지 않아요.** (횟수를 바꾸려면 SQL의 `agent_daily_limit()` 숫자(지금은 `20`)를 고쳐서 다시 실행하고, `src/pages/Agent.jsx`의 `DAILY_LIMIT`도 맞춰 주세요.)
 3. Authentication 설정에서 가입 확인 메일 사용 여부를 정하고, 배포하면 **Site URL**을 배포 주소로 바꿔요.
 
 ### 배포 (Vercel)
@@ -145,7 +145,7 @@ npm run dev                      # 화면 + /api 서버 함수 (http://localhost
 api/                     Vercel 서버 함수 (/api/파일이름) — 비밀 키는 여기서만
   weather.js               날씨 (단기+중기예보)
   observed.js              지난 날짜의 관측 날씨 (ASOS)
-  agent.js                 AI 도우미 (로그인 확인 → 하루 10번 제한 → Claude 에이전트)
+  agent.js                 AI 도우미 (로그인 확인 → 하루 20번 제한 → Claude 에이전트)
   hello.js                 동작 확인용
 server/                  기상청 API 호출·계산 (weather.js, observed.js)
   agent.js                 AI 도우미의 에이전트 루프 (Claude ↔ 도구)

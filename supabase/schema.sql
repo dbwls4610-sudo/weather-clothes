@@ -57,10 +57,16 @@ create policy "outfit photos delete own" on storage.objects for delete to authen
   using (bucket_id = 'outfit-photos' and (storage.foldername(name))[1] = auth.uid()::text);
 
 -- ─────────────────────────────────────────────────────────────
--- AI 도우미: 하루 질문 횟수 제한 (한 사람당 하루 10번, 한국 시간 기준)
+-- AI 도우미: 하루 질문 횟수 제한 (한 사람당 하루 20번, 한국 시간 기준)
 -- 횟수는 사용자가 직접 고칠 수 없게, 아래 함수로만 세어요 (테이블에는 정책이 없어서 직접 읽기·쓰기 불가)
--- 횟수를 바꾸려면 두 함수의 10 을 바꿔서 다시 실행하세요.
+-- 횟수를 바꾸려면 아래 agent_daily_limit() 의 숫자 하나만 바꿔서 다시 실행하세요.
+--   (화면의 "오늘 남은 질문 N/20번" 표시는 src/pages/Agent.jsx 의 DAILY_LIMIT 도 같이 바꿔 주세요)
 -- ─────────────────────────────────────────────────────────────
+-- 하루 질문 횟수 (여기 숫자 하나가 기준)
+create or replace function public.agent_daily_limit()
+returns int
+language sql immutable as $$ select 20 $$;
+
 create table if not exists public.agent_usage (
   user_id    uuid not null references auth.users (id) on delete cascade,
   usage_date date not null,
@@ -69,12 +75,12 @@ create table if not exists public.agent_usage (
 );
 alter table public.agent_usage enable row level security;
 
--- 질문 1번 사용: 아직 10번 미만이면 1 늘리고 ok=true, 이미 다 썼으면 ok=false
+-- 질문 1번 사용: 아직 한도 미만이면 1 늘리고 ok=true, 이미 다 썼으면 ok=false
 create or replace function public.use_agent_quota()
 returns table (ok boolean, used_count int, left_count int)
 language plpgsql security definer set search_path = public as $$
 declare
-  daily_limit constant int := 10;
+  daily_limit constant int := public.agent_daily_limit();
   today date := (now() at time zone 'Asia/Seoul')::date;
   new_used int;
 begin
@@ -97,12 +103,13 @@ end $$;
 create or replace function public.agent_quota_left()
 returns int
 language sql stable security definer set search_path = public as $$
-  select greatest(10 - coalesce((
+  select greatest(public.agent_daily_limit() - coalesce((
     select used from public.agent_usage
     where user_id = auth.uid() and usage_date = (now() at time zone 'Asia/Seoul')::date
   ), 0), 0)
 $$;
 
+grant execute on function public.agent_daily_limit() to authenticated;
 revoke all on function public.use_agent_quota() from public;
 revoke all on function public.agent_quota_left() from public;
 grant execute on function public.use_agent_quota() to authenticated;

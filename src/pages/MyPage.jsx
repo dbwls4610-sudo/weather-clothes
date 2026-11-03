@@ -83,7 +83,7 @@ function CalendarView({ logs, onOpen, onAdd }) {
             <div key={w} className={`text-center small fw-bold ${i === 0 ? 'text-danger' : i === 6 ? 'text-primary' : 'text-muted'}`}>{w}</div>
           ))}
         </div>
-        <div className="cal-grid">
+        <div className="cal-grid" style={{ '--cal-rows': Math.ceil(cells.length / 7) }}>
           {cells.map((d, i) => {
             if (!d) return <div key={`blank-${i}`} />
             const key = keyOf(d)

@@ -90,7 +90,7 @@ button.cal-cell:hover { filter: brightness(0.92); }
   .cal-card .card-body { padding: 0.75rem 0.25rem; }
   .cal-grid { gap: 2px; }
   /* 달력이 폰 화면 높이를 가득 채우도록 칸을 세로로 길게 (최대 6줄 기준) */
-  .cal-cell { aspect-ratio: auto; height: max(5rem, calc((100svh - 22rem) / 6)); }
+  .cal-cell { aspect-ratio: auto; height: max(5rem, calc((100svh - 21rem) / var(--cal-rows, 6))); }
   .cal-num { top: 2px; left: 2px; font-size: 0.75rem; padding: 0 3px; }
   .cal-meta { right: 2px; bottom: 2px; gap: 3px; padding: 1px 4px; font-size: 0.8rem; }
   .feel-dot { width: 0.7rem; height: 0.7rem; }

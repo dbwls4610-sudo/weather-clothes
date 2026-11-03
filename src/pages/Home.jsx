@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Alert, Button, Card, Col, Nav, Row, Spinner } from 'react-bootstrap'
+import { Alert, Button, Nav, Spinner } from 'react-bootstrap'
 import PageHeader from '../components/PageHeader'
 import PlaceSelect from '../components/PlaceSelect'
 import WeatherCard from '../components/WeatherCard'
@@ -138,25 +138,19 @@ function Checks() {
     : { state: 'fail', msg: '.env.local 에 VITE_SUPABASE_URL / ANON_KEY 를 넣으세요' }
 
   return (
-    <>
-      <h6 className="fw-bold text-muted mt-5 mb-3"><i className="bi bi-clipboard-check me-2" />동작 체크</h6>
-      <Row xs={1} md={3} className="g-3">
-        <Col><Check title="React · 라우터" state="ok" msg="이 화면이 보이면 OK" /></Col>
-        <Col><Check title="Supabase" {...db} /></Col>
-        <Col><Check title="서버 함수 /api" {...api} /></Col>
-      </Row>
-    </>
+    // 확인용이라 작고 간단하게. 위쪽 내용과 간격을 벌리고, 데이터 출처 안내처럼 화면 가로 끝까지 회색 선으로 구분해요 (.checks-section)
+    <section className="checks-section small text-muted">
+      <div className="fw-bold mb-1"><i className="bi bi-clipboard-check me-1" />동작 체크</div>
+      <div className="d-flex flex-column flex-md-row flex-wrap column-gap-4 row-gap-1">
+        <Check title="React · 라우터" state="ok" msg="OK" />
+        <Check title="Supabase" {...db} />
+        <Check title="서버 함수 /api" {...api} />
+      </div>
+    </section>
   )
 }
 
 function Check({ title, state, msg }) {
   const icon = { ok: 'check-circle-fill text-success', fail: 'x-circle-fill text-danger', wait: 'hourglass-split text-muted' }[state]
-  return (
-    <Card className="h-100">
-      <Card.Body>
-        <div className="fw-bold mb-1"><i className={`bi bi-${icon} me-2`} />{title}</div>
-        <div className="small text-muted">{msg}</div>
-      </Card.Body>
-    </Card>
-  )
+  return <div><i className={`bi bi-${icon} me-1`} />{title}: {msg}</div>
 }

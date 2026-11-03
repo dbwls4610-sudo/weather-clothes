@@ -19,7 +19,7 @@ export default function WeekCard({ days, emptyText }) {
           <Card.Title className="fw-bold"><i className="bi bi-calendar-week me-2 text-primary" />한 주 요약</Card.Title>
           <ul className="mb-0">
             <li>
-              가장 추운 날은 <b>{dayLabel(s.coldest.date)}</b>(최고 {s.coldest.max}℃),<br />
+              가장 추운 날은 <b>{dayLabel(s.coldest.date)}</b>(최고 {s.coldest.max}℃),<br className="d-sm-none" />
               가장 따뜻한 날은 <b>{dayLabel(s.warmest.date)}</b>(최고 {s.warmest.max}℃)예요.
             </li>
             <li>
@@ -53,17 +53,18 @@ export default function WeekCard({ days, emptyText }) {
                       </div>
                       <div className="small text-muted">{d.sky}</div>
                     </div>
-                  </div>
-                  <div className="small text-muted mt-2">
-                    <div>강수확률 {d.pop}%</div>
-                    {d.wind != null && <div>바람 {d.wind}m/s</div>}
-                    {d.partial && <div>일부 시간대 기준</div>}
+                    {/* 웹에서는 아이콘·기온 오른쪽에, 폰에서는 그 아래에 (theme.css 의 .wk-extra) */}
+                    <div className="small text-muted wk-extra">
+                      <div>강수확률 {d.pop}%</div>
+                      {d.wind != null && <div>바람 {d.wind}m/s</div>}
+                      {d.partial && <div>일부 시간대 기준</div>}
+                    </div>
                   </div>
                 </Card.Body>
               </Card>
             </Col>
             <Col xs={8} sm={7} className="wk-col-r">
-              <OutfitCard outfit={outfit} title="추천 옷차림" className="" showLabel={false} tipsFirst />
+              <OutfitCard outfit={outfit} title="추천 옷차림" className="" border="" showLabel={false} tipsFirst />
             </Col>
           </Row>
         )

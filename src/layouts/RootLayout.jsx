@@ -51,7 +51,7 @@ export default function RootLayout() {
         </Container>
       </Navbar>
 
-      <main className="flex-grow-1 py-4">
+      <main className="flex-grow-1 pt-4 page-main">
         <Container>
           <Outlet />
         </Container>

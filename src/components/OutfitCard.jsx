@@ -32,14 +32,14 @@ function Tip({ text }) {
 //  · showText=false: "쌀쌀한 날씨예요…" 같은 설명 글을 뺌
 //  · tipsFirst: 제목 아래에 팁(우산·바람·일교차 문장) → 추천 문장(첫 문장 뺀 옷 추천 문장) → 옷 그림 순으로 쌓음.
 //    (옷 그림 카드는 문장 바로 아래에 이어지고, 높이를 고정하지 않아요)
-export default function OutfitCard({ outfit, title = '추천 옷차림', className = 'mb-4', showLabel = true, showText = true, tipsFirst = false }) {
+export default function OutfitCard({ outfit, title = '추천 옷차림', className = 'mb-4', showLabel = true, showText = true, tipsFirst = false, border = 'border-primary' }) {
   const tips = outfit.tips.length > 0 && (
     <ul className={`small text-muted ps-3 ${tipsFirst ? 'mb-1' : 'mt-3 mb-0'}`}>
       {outfit.tips.map((t) => <li key={t}><Tip text={t} /></li>)}
     </ul>
   )
   return (
-    <Card className={`h-100 border-primary ${className}`}>
+    <Card className={`h-100 ${border} ${className}`}>
       <Card.Body>
         <Card.Title className="fw-bold">
           <i className="bi bi-handbag me-2 text-primary" />{title} {showLabel && <TempBadge label={outfit.label} />}        </Card.Title>

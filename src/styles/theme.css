@@ -72,6 +72,16 @@ button.cal-cell:hover { filter: brightness(0.92); }
 
 /* 이번주·다음주: 왼쪽 카드의 날짜와 오른쪽 카드의 "추천 옷차림" 제목은 같은 글자 크기 (폰에서는 아래 모바일 규칙이 둘 다 0.95rem 으로 줄임) */
 .week-row .wk-date, .week-row .card-title { font-size: 1.1rem; }
+.week-row .wk-badge { font-size: 1.05rem; }
+/* 웹(576px 이상)에서는 왼쪽 날씨 카드 글씨·아이콘을 키워요 */
+@media (min-width: 576px) {
+  .week-row .wk-left .wk-date { font-size: 1.3rem; }
+  .week-row .wk-left .wk-icon { font-size: 3.5rem; }
+  .week-row .wk-left .fs-5 { font-size: 1.6rem !important; }
+  .week-row .wk-left .small { font-size: 1.05rem; }
+}
+.week-row .wk-main { flex-wrap: wrap; }
+.week-row .wk-extra { white-space: nowrap; margin: 0.5rem 0 0 1.5rem; }
 
 /* ── 모바일(폰) 화면 맞춤 ───────────────────────────────── */
 
@@ -106,7 +116,7 @@ button.cal-cell:hover { filter: brightness(0.92); }
 
   /* 이번주·다음주: 폰에서도 왼쪽 날씨 / 오른쪽 추천 옷차림. 칸이 좁아서 글자·그림·여백을 줄이고, 날씨 카드 안은 세로로 쌓음 */
   .week-row .card-body { padding: 0.5rem; }
-  .week-row .wk-main { flex-wrap: wrap; }
+  .week-row .wk-extra { flex: 0 0 100%; margin: 0.5rem 0 0; }
   .week-row .wk-icon { font-size: 2rem; margin-right: 0.5rem !important; }
   .week-row .wk-badge { font-size: 0.75rem !important; }
   .week-row .card-title { font-size: 0.95rem; margin-bottom: 0.4rem; }
@@ -184,3 +194,12 @@ button.cal-cell:hover { filter: brightness(0.92); }
   .switch-row { gap: 0.9rem; }
   .switch-row .form-check { font-size: 0.85rem; }
 }
+
+/* 홈 맨 아래 동작 체크: 위쪽에 화면 가로 끝까지 가는 회색 선 (데이터 출처 안내의 선과 같은 모양) */
+/* 페이지 끝 내용과 회색 선(데이터 출처 안내 선 / 홈의 동작 체크 선) 사이 간격 — 모든 페이지가 같은 값을 써요 */
+:root { --page-gap: 5.5rem; }
+.page-main { padding-bottom: var(--page-gap); }
+.page-main .container > :last-child:not(.checks-section) { margin-bottom: 0 !important; }
+/* 홈: 선 위 간격은 --page-gap, 선 아래 칸은 예전 높이(약 1rem)로 (margin-bottom 이 본문 아래 여백을 되돌림) */
+.checks-section { position: relative; padding-top: 1rem; margin-top: var(--page-gap); margin-bottom: calc(1rem - var(--page-gap)); }
+.checks-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; box-shadow: 0 0 0 100vmax #dee2e6; clip-path: inset(0 -100vmax); }

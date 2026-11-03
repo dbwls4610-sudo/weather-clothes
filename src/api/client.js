@@ -14,10 +14,10 @@ export async function get(path) {
   return readJson(await fetch(path))
 }
 
-export async function post(path, body) {
+export async function post(path, body, headers = {}) {
   return readJson(await fetch(path, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...headers },
     body: JSON.stringify(body),
   }))
 }
@@ -31,5 +31,6 @@ export const fetchObserved = (date, lat, lon) => get(`/api/observed?date=${date}
 // 동작 확인용
 export const ping = () => get('/api/hello')
 
-// Claude 에게 질문 (서버 함수 /api/agent 를 거칩니다)
-export const askAgent = (message, history) => post('/api/agent', { message, history })
+// Claude 에게 질문 (서버 함수 /api/agent 를 거칩니다). 로그인 토큰이 있어야 하고, context 는 지금 보고 있는 지역 { label, lat, lon }
+export const askAgent = (message, history, context, token) =>
+  post('/api/agent', { message, history, context }, { Authorization: `Bearer ${token}` })

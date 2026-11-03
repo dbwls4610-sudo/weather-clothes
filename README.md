@@ -38,8 +38,13 @@
 ### 2. 날씨별 옷차림 (메뉴 "날씨별 옷차림")
 기온에 따라 어떤 옷을 추천하는지 **더움에서 추움까지 세로로 이어서** 한눈에 볼 수 있어요. 비 오는 날 / 바람 센 날 / 일교차 큰 날 스위치로 추천이 어떻게 달라지는지도 볼 수 있어요.
 
-### 3. AI 도우미 (메뉴 "AI 도우미")
-Claude에게 제주 옷차림에 대해 자유롭게 물어볼 수 있어요. 비밀 키는 서버(`/api/agent`)에서만 써요.
+### 3. AI 도우미 (메뉴 "AI 도우미", 로그인 필요)
+Claude에게 제주 옷차림을 물어보면, **Claude가 직접 날씨 조회 도구를 불러서 실제 예보를 확인한 뒤** 답해요. (에이전트)
+- 예) "내일 중문에서 하루 종일 걸을 건데 뭐 입을까?", "이번 주말 서귀포 옷차림 알려줘"
+- 홈에서 보고 있던 지역을 알고 있어서, 지역 없이 "오늘 뭐 입지?"만 물어도 그 지역 기준으로 답해요. 질문에 "노형", "성산", "모슬포"처럼 동네 이름을 쓰면 그곳 날씨를 조회해요.
+- 도구가 돌려주는 **추천 옷차림은 앱 화면의 추천과 같은 규칙**(`src/lib/outfit.js`)이라, 화면과 AI의 답이 어긋나지 않아요.
+- **로그인한 사람만, 하루 10번까지** 쓸 수 있어요(한국 시간 기준, 화면에 오늘 남은 횟수가 보여요). 로그인 확인과 횟수 세기는 서버에서 해서 브라우저에서 우회할 수 없어요.
+- Claude 키는 서버(`/api/agent`)에서만 써요. 모델은 환경변수 `ANTHROPIC_MODEL`로 고르고, 기본은 가볍고 저렴한 **Claude Haiku**예요.
 
 ### 4. 로그인 (오른쪽 위 "로그인")
 - 이메일 + 비밀번호로 가입·로그인 (Supabase Auth)
@@ -109,7 +114,8 @@ npm run dev                      # 화면 + /api 서버 함수 (http://localhost
 |---|---|
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | Supabase 연결 (브라우저에 공개돼도 되는 값) |
 | `DATA_GO_KR_KEY` | 공공데이터포털 **일반 인증키(Decoding)** — 서버에서만 사용 |
-| `ANTHROPIC_API_KEY` | Claude 키 — 서버에서만 사용 |
+| `ANTHROPIC_API_KEY` | Claude 키 — 서버에서만 사용 (AI 도우미) |
+| `ANTHROPIC_MODEL` | AI 도우미가 쓸 Claude 모델. `haiku`(기본값, 빠르고 저렴) / `sonnet` / `opus` 또는 모델 ID 전체. 비워 두면 haiku예요. |
 
 > `VITE_`로 시작하지 않는 값은 브라우저에 들어가지 않아요. `.env.local`은 git에 올라가지 않아요.
 
@@ -117,6 +123,7 @@ npm run dev                      # 화면 + /api 서버 함수 (http://localhost
 1. Supabase 프로젝트를 만들고 위 두 값을 `.env.local`에 넣어요.
 2. 대시보드 → **SQL Editor** → New query에 `supabase/schema.sql` 내용을 붙여넣고 **Run**해요. (여러 번 실행해도 안전해요. 기능이 추가될 때 다시 실행하면 칸이 더해져요.)
    - 기록 테이블 `outfit_logs`(사진 경로·날씨·느낌·후기), 비공개 사진 보관함 `outfit-photos`, 내 것만 볼 수 있는 보안 규칙(RLS)이 만들어져요.
+   - AI 도우미의 하루 질문 횟수를 세는 테이블 `agent_usage`와 함수 `use_agent_quota`, `agent_quota_left`도 만들어져요. **이 SQL을 실행하지 않으면 AI 도우미가 동작하지 않아요.** (횟수를 바꾸려면 SQL의 `10`을 고쳐서 다시 실행하고, `src/pages/Agent.jsx`의 `DAILY_LIMIT`도 맞춰 주세요.)
 3. Authentication 설정에서 가입 확인 메일 사용 여부를 정하고, 배포하면 **Site URL**을 배포 주소로 바꿔요.
 
 ### 배포 (Vercel)
@@ -132,9 +139,11 @@ npm run dev                      # 화면 + /api 서버 함수 (http://localhost
 api/                     Vercel 서버 함수 (/api/파일이름) — 비밀 키는 여기서만
   weather.js               날씨 (단기+중기예보)
   observed.js              지난 날짜의 관측 날씨 (ASOS)
-  agent.js                 AI 도우미 (Claude)
+  agent.js                 AI 도우미 (로그인 확인 → 하루 10번 제한 → Claude 에이전트)
   hello.js                 동작 확인용
 server/                  기상청 API 호출·계산 (weather.js, observed.js)
+  agent.js                 AI 도우미의 에이전트 루프 (Claude ↔ 도구)
+  agentTools.js            Claude 가 부르는 도구 (get_weather) — 새 도구는 여기에 추가
 supabase/schema.sql      DB 테이블·사진 보관함·보안 규칙
 src/
   main.jsx                 디자인 테마 선택 + 라우터 시작
@@ -168,5 +177,7 @@ src/
 | 비슷한 날 고르는 기준(순서·기온 차이 한도) | `src/lib/pastOutfits.js` |
 | 지역·동네 추가 | `src/lib/places.js` |
 | 느낌 버튼 이름·색 | `src/components/FeelPicker.jsx` |
+| AI 도우미의 말투·규칙·사용 모델 | `server/agent.js`(안내문), `api/agent.js`(모델) |
+| AI 도우미가 쓰는 도구 | `server/agentTools.js` |
 | 메뉴 | `src/router.jsx` (`NAV_ITEMS`) |
 | 화면 아래 데이터 출처 | `src/layouts/RootLayout.jsx` (`DATA_SOURCES`) |

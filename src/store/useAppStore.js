@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { askAgent, fetchWeather } from '../api/client'
-import { placeById } from '../lib/places'
+import { placeById, placeLabel } from '../lib/places'
 import { supabase } from '../lib/supabase'
 
 // 마지막으로 본 지역을 브라우저에 기억해 두었다가 다음에 열 때 자동으로 불러옵니다
@@ -15,6 +15,15 @@ function saveLastPlace(place) {
   try { localStorage.setItem(PLACE_KEY, place) } catch { /* 저장 못 해도 앱은 그대로 */ }
 }
 const lastPlace = readLastPlace()
+
+// AI 도우미에게 "지금 앱에서 보고 있는 지역"을 알려줍니다 (날씨를 불러온 뒤에만 있음)
+function agentContext(state) {
+  if (!state.weather) return undefined
+  const spot = placeById(state.weatherPlace) ?? (state.weatherPlace === 'mine' ? state.myCoords : null)
+  if (!spot) return undefined
+  const lat = spot.lat, lon = spot.lon
+  return { label: state.weatherPlace === 'mine' ? '내 위치' : placeLabel(state.weatherPlace), lat, lon }
+}
 
 let authStarted = false  // StrictMode 에서 두 번 불려도 한 번만 시작
 
@@ -49,7 +58,10 @@ export const useAppStore = create((set, get) => ({
     authStarted = true
     if (!supabase) return set({ authReady: true })
     supabase.auth.getSession().then(({ data }) => set({ user: data.session?.user ?? null, authReady: true }))
-    supabase.auth.onAuthStateChange((_event, session) => set({ user: session?.user ?? null }))
+    supabase.auth.onAuthStateChange((_event, session) => {
+      // 로그아웃하면 AI 도우미 대화도 비워서, 다음 사람 화면에 남지 않게 함
+      set(session ? { user: session.user } : { user: null, messages: [], agentLeft: null })
+    })
   },
   signIn: async (email, password) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -69,6 +81,7 @@ export const useAppStore = create((set, get) => ({
   weatherError: '',
   place: lastPlace ?? 'mine',   // 'mine'(내 위치) 또는 지역 id — 마지막으로 본 지역을 이어받음
   hasLastPlace: lastPlace !== null,   // 전에 본 지역이 있으면 홈을 열 때 날씨를 자동으로 불러옴
+  myCoords: null,        // 마지막으로 확인한 내 위치 { lat, lon } — AI 도우미에게 "지금 보는 지역"을 알려줄 때 씀
   weatherPlace: 'mine',  // 지금 화면에 보이는 날씨의 지역 (고르기만 한 지역과 구분)
   selectPlace: (place) => set({ place }),   // 지역을 고르기만 함 — 날씨는 loadWeather 를 눌러야 불러옴
   loadWeather: async () => {
@@ -94,6 +107,7 @@ export const useAppStore = create((set, get) => ({
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         try {
+          set({ myCoords: { lat: coords.latitude, lon: coords.longitude } })
           set({ weather: await fetchWeather(coords.latitude, coords.longitude), weatherPlace: 'mine' })
         } catch (e) {
           set({ weatherError: e.message })
@@ -109,17 +123,27 @@ export const useAppStore = create((set, get) => ({
     )
   },
 
-  // Claude 대화 — 페이지를 옮겨도 대화가 남도록 store 에 둡니다
+  // Claude 대화 (로그인한 사람만, 하루 10번) — 페이지를 옮겨도 대화가 남도록 store 에 둡니다
   messages: [],          // { role: 'user' | 'assistant', text }
   chatLoading: false,
+  agentLeft: null,       // 오늘 남은 질문 횟수 (모르면 null)
+  loadAgentLeft: async () => {
+    if (!supabase || !get().user) return
+    const { data } = await supabase.rpc('agent_quota_left')
+    if (typeof data === 'number') set({ agentLeft: data })
+  },
   sendMessage: async (text) => {
     const history = get().messages.map((m) => ({ role: m.role, content: m.text }))  // Claude 형식
     set({ messages: [...get().messages, { role: 'user', text }], chatLoading: true })
     try {
-      const { answer } = await askAgent(text, history)
-      set({ messages: [...get().messages, { role: 'assistant', text: answer }] })
+      const { data } = await supabase.auth.getSession()
+      const token = data.session?.access_token
+      if (!token) throw new Error('AI 도우미는 로그인한 뒤에 이용할 수 있어요')
+      const { answer, remaining } = await askAgent(text, history, agentContext(get()), token)
+      set({ messages: [...get().messages, { role: 'assistant', text: answer }], agentLeft: remaining ?? get().agentLeft })
     } catch (e) {
       get().toast(e.message, 'danger')
+      get().loadAgentLeft()   // 한도 초과 등으로 실패했을 수 있으니 남은 횟수를 다시 확인
     } finally {
       set({ chatLoading: false })
     }

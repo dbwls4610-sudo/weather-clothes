@@ -59,3 +59,35 @@ export function placeLabel(id) {
 
 // 그 시에 속한 지역 목록 (시 전체 포함, 맨 앞)
 export const placesOfCity = (cityId) => PLACES.filter((p) => p.city === cityId)
+
+// 자주 쓰는 동네 별명 → 지역 이름 (AI 도우미가 "모슬포", "함덕" 같은 말로 물어도 찾도록)
+const ALIASES = {
+  모슬포: '대정읍', 세화: '구좌읍', 고산: '한경면', 협재: '한림읍', 함덕: '조천읍',
+  신제주: '노형동', 추자도: '추자면', 우도: '우도면', 중문관광단지: '중문동',
+}
+
+// 사람이 쓴 지역 이름("노형", "제주시 노형동", "중문", "서귀포") → 지역. 못 찾으면 null
+// 시 이름만 말하면 그 시 전체(시청 기준)를 돌려줘요.
+export function findPlace(query) {
+  let q = String(query ?? '').replace(/\s+/g, '')
+  if (!q) return null
+  q = ALIASES[q] ?? q
+  const core = (s) => s.replace(/(동|읍|면|시)$/, '')
+
+  // "제주시 노형동" 처럼 시 이름이 앞에 붙은 경우
+  let city = CITIES.find((c) => q.startsWith(c.name)) ?? null
+  if (city) q = q.slice(city.name.length)
+  if (!city && q.length >= 2) {
+    const bare = CITIES.find((c) => core(c.name) === core(q))   // "제주", "서귀포"
+    if (bare) { city = bare; q = '' }
+  }
+  if (!q || q === '전체') return city ? PLACES.find((p) => p.id === city.id) : null
+
+  const pool = (city ? placesOfCity(city.id) : PLACES).filter((p) => p.kind)   // 시 전체 항목 제외
+  const key = core(q)
+  return (
+    pool.find((p) => p.name === q) ??
+    pool.find((p) => core(p.name) === key) ??
+    (key.length >= 2 ? pool.find((p) => p.name.includes(key)) : null) ?? null
+  )
+}

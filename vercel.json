@@ -1,4 +1,16 @@
 {
-  "regions": ["icn1"],
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+  "regions": [
+    "icn1"
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/agent.js": {
+      "maxDuration": 60
+    }
+  }
 }

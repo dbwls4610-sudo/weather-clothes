@@ -62,7 +62,9 @@ export default async function handler(req, res) {
     : undefined
 
   try {
-    const { answer, toolsUsed } = await runAgent({ client: getAnthropic(), model: pickModel(), messages, ctx: { place } })
+    const model = pickModel()
+    const { answer, toolsUsed } = await runAgent({ client: getAnthropic(), model, messages, ctx: { place } })
+    console.log(`[agent] model=${model} tools=${toolsUsed.join(',') || '없음'} place=${place?.label ?? '없음'}`)   // 문제가 생기면 Vercel Logs 에서 확인
     res.status(200).json({ answer, remaining: q.left_count, toolsUsed })
   } catch (e) {
     // 429 = Claude 호출 한도 초과, 401 = 키 오류

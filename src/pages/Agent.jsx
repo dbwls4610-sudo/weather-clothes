@@ -72,7 +72,15 @@ export default function Agent() {
               </div>
             </div>
           )}
-          {messages.map((m, i) => <div key={i} className={`msg ${m.role}`}>{m.text}</div>)}
+          {messages.map((m, i) => (
+            <div key={i}>
+              <div className={`msg ${m.role}`}>{m.text}</div>
+              {/* 실제로 기상청 예보를 조회해서 답했을 때만 표시 */}
+              {m.tools?.includes('get_weather') && (
+                <div className="small text-muted mb-2"><i className="bi bi-cloud-check me-1" />기상청 예보를 확인하고 답했어요</div>
+              )}
+            </div>
+          ))}
           {loading && <div className="small text-muted"><Spinner size="sm" className="me-2" />날씨를 확인하고 답변을 만드는 중...</div>}
           <div ref={bottom} />
         </Card.Body>

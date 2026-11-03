@@ -139,8 +139,8 @@ export const useAppStore = create((set, get) => ({
       const { data } = await supabase.auth.getSession()
       const token = data.session?.access_token
       if (!token) throw new Error('AI 도우미는 로그인한 뒤에 이용할 수 있어요')
-      const { answer, remaining } = await askAgent(text, history, agentContext(get()), token)
-      set({ messages: [...get().messages, { role: 'assistant', text: answer }], agentLeft: remaining ?? get().agentLeft })
+      const { answer, remaining, toolsUsed } = await askAgent(text, history, agentContext(get()), token)
+      set({ messages: [...get().messages, { role: 'assistant', text: answer, tools: toolsUsed ?? [] }], agentLeft: remaining ?? get().agentLeft })
     } catch (e) {
       get().toast(e.message, 'danger')
       get().loadAgentLeft()   // 한도 초과 등으로 실패했을 수 있으니 남은 횟수를 다시 확인

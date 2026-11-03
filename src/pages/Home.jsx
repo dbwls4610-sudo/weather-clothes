@@ -109,7 +109,7 @@ export default function Home() {
           )}
           {(tab === 'thisWeek' || tab === 'nextWeek') && !weather.midError && (
             <div className="small text-muted mb-4">
-              3일 후까지는 단기예보, 그 이후는 {weather.midRegion} 기준 중기예보예요. 옷차림은 그날 최고와 최저 기온의 평균 기온으로 추천해요. 기상청은 최대 10일 뒤까지만 예보해서 다음주는 일부만 보일 수 있어요.
+              3일 후까지는 단기예보, 그 이후는 {weather.midRegion} 기준 중기예보예요. 기상청은 최대 10일 뒤까지만 예보해서 다음주는 일부만 보일 수 있어요. 옷차림은 그날 최고와 최저 기온의 평균 기온으로 추천해요.
             </div>
           )}
         </>

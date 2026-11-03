@@ -90,6 +90,16 @@ Claude에게 제주 옷차림을 물어보면, **Claude가 직접 날씨 조회 
 - 달력은 화면 가로를 꽉 채우고, 느낌 버튼은 `더웠어요 두 개 / 딱 좋았어요(한 줄 전체) / 추웠어요 두 개`로 놓여요.
 - 시간별 예보와 비슷한 날 카드는 옆으로 밀어서 보고, 사진 창은 폰에서 전체 화면으로 열려요.
 
+### 9. 링크 공유 미리보기와 홈 화면 앱
+| 기능 | 설명 |
+|---|---|
+| **링크 공유 미리보기 (OG)** | 카카오톡·네이트온 등에 주소를 보내면 제목 "제주 옷차림 비서", 설명, 열린 옷장 그림(1200×630)이 카드로 보여요. 설정은 `index.html`의 `og:*` 메타 태그에 있어요. |
+| **브라우저 탭 아이콘** | 탭에는 옷장 아이콘(`public/favicon-32.png`, `favicon-64.png`)이 보이고, 탭 제목은 "제주 옷차림 비서"예요. |
+| **홈 화면에 앱 추가** | `public/manifest.webmanifest`로 폰 홈 화면에 앱처럼 추가할 수 있어요 (이름 "제주 옷차림 비서", 짧은 이름 "옷차림 비서", 주소창 없는 `standalone` 화면, 테마색 민트 `#78c2ad`). 아이콘은 192·512 PNG, iPhone용은 180 PNG(`apple-touch-icon`)예요. |
+| **QR 코드** | `images/qr.png`는 배포 주소(`https://weather-clothes-eosin.vercel.app/`)로 연결되는 흰 배경·검은색 QR이에요. |
+
+> **OG 이미지를 바꿨는데 카카오톡에서 안 바뀌면**: 카카오는 같은 주소의 이미지를 캐시해요. `index.html`의 `og:image` 주소 뒤 숫자(`?v=3`)를 올리고 다시 배포하거나, [카카오 공유 디버거](https://developers.kakao.com/tool/clear/og)에서 캐시를 초기화해 주세요. (카카오톡·네이트온처럼 이미지 양옆을 자르는 곳이 있어서, 글씨와 그림은 가운데 가까이에 두는 게 안전해요.)
+
 ---
 
 ## 사용한 데이터
@@ -151,6 +161,8 @@ server/                  기상청 API 호출·계산 (weather.js, observed.js)
   agent.js                 AI 도우미의 에이전트 루프 (Claude ↔ 도구)
   agentTools.js            Claude 가 부르는 도구 (get_weather) — 새 도구는 여기에 추가
 supabase/schema.sql      DB 테이블·사진 보관함·보안 규칙
+public/                  그대로 배포되는 파일: 탭 아이콘, manifest.webmanifest, images/(OG·앱 아이콘)
+images/qr.png            배포 주소 QR 코드
 src/
   main.jsx                 디자인 테마 선택 + 라우터 시작
   router.jsx               메뉴(NAV_ITEMS) + 주소별 페이지
@@ -186,4 +198,6 @@ src/
 | AI 도우미의 말투·규칙·사용 모델 | `server/agent.js`(안내문), `api/agent.js`(모델) |
 | AI 도우미가 쓰는 도구 | `server/agentTools.js` |
 | 메뉴 | `src/router.jsx` (`NAV_ITEMS`) |
+| 링크 공유 제목·설명·이미지 (OG) | `index.html` (`og:*`), 이미지는 `public/images/og.png` |
+| 홈 화면 앱 이름·색·아이콘 | `public/manifest.webmanifest`, `public/images/icon-*.png` |
 | 화면 아래 데이터 출처 | `src/layouts/RootLayout.jsx` (`DATA_SOURCES`) |

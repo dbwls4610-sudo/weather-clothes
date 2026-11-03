@@ -91,3 +91,15 @@ export function findPlace(query) {
     (key.length >= 2 ? pool.find((p) => p.name.includes(key)) : null) ?? null
   )
 }
+
+// 좌표에서 가장 가까운 동·읍·면 (maxKm 안에 없으면 null — 제주 밖일 때). "내 위치"를 동네 이름으로 말해 줄 때 씀
+export function nearestPlace(lat, lon, maxKm = 12) {
+  let best = null
+  let bestKm = Infinity
+  for (const p of PLACES) {
+    if (!p.kind) continue                                          // 시 전체 항목은 제외
+    const km = Math.hypot((p.lat - lat) * 111, (p.lon - lon) * 111 * Math.cos((lat * Math.PI) / 180))
+    if (km < bestKm) { best = p; bestKm = km }
+  }
+  return best && bestKm <= maxKm ? best : null
+}

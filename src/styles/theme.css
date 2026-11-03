@@ -1,7 +1,7 @@
 /* 테마 위에 덧입히는 우리 앱 스타일 — 색은 Bootstrap 변수(--bs-*)를 사용 */
 body { font-family: 'Pretendard', system-ui, sans-serif; background: var(--bs-tertiary-bg); }
 
-.chat-box .msg { max-width: 80%; padding: .6rem .9rem; border-radius: 1rem; margin-bottom: .5rem; }
+.chat-box .msg { white-space: pre-wrap; max-width: 80%; padding: .6rem .9rem; border-radius: 1rem; margin-bottom: .5rem; }
 .chat-box .msg.assistant { background: var(--bs-secondary-bg); }
 .chat-box .msg.user { background: var(--bs-primary); color: #fff; margin-left: auto; }
 

@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Alert, Button, Card, Form, InputGroup, Spinner } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
+import AgentPastCards from '../components/AgentPastCards'
 import PageHeader from '../components/PageHeader'
 import { placeLabel } from '../lib/places'
 import { useAppStore } from '../store/useAppStore'
 
 const DAILY_LIMIT = 10   // 서버(supabase/schema.sql)의 하루 질문 횟수와 같아야 해요
-const EXAMPLES = ['오늘 뭐 입고 나갈까?', '내일 비 오면 신발은 뭐가 좋아?', '이번 주말 서귀포 옷차림 알려줘']
+const EXAMPLES = ['내일 뭐 입고 나갈까?', '오늘과 비슷한 날 내가 입었던 옷은?', '이번 주말 서귀포 옷차림 알려줘']
 
 export default function Agent() {
   const user = useAppStore((s) => s.user)
@@ -79,6 +80,8 @@ export default function Agent() {
               {m.tools?.includes('get_weather') && (
                 <div className="small text-muted mb-2"><i className="bi bi-cloud-check me-1" />기상청 예보를 확인하고 답했어요</div>
               )}
+              {/* 비슷한 날 기록을 참고했으면 그 기록의 사진 카드 (사진은 내 화면에서만 불러옴) */}
+              {m.past?.length > 0 && <AgentPastCards items={m.past} />}
             </div>
           ))}
           {loading && <div className="small text-muted"><Spinner size="sm" className="me-2" />날씨를 확인하고 답변을 만드는 중...</div>}
@@ -87,6 +90,10 @@ export default function Agent() {
       </Card>
 
       {noLeft && <Alert variant="warning" className="py-2 small">오늘 질문 {DAILY_LIMIT}번을 모두 사용했어요. 내일 다시 이용해 주세요.</Alert>}
+      <div className="small text-muted mb-2">
+        <i className="bi bi-shield-lock me-1" />
+        내 기록(날짜·날씨·느낌·후기 글)은 추천에만 쓰이고, <b>옷 사진은 AI에게 보내지 않아요.</b> 사진은 답변 아래 카드에서 내 화면으로만 불러와요.
+      </div>
       <Form onSubmit={(e) => { e.preventDefault(); ask(input) }}>
         <InputGroup>
           <Form.Control value={input} maxLength={500} disabled={noLeft} onChange={(e) => setInput(e.target.value)} placeholder="질문을 입력하세요" />

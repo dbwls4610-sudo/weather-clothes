@@ -54,6 +54,8 @@ export default function PastCard({ p, url, onOpen }) {
         {/* 느낌 표시는 항상 날짜 아래 줄. 느낌을 안 적은 기록도 줄 높이는 같게 비워 둠 */}
         <div className="mb-1 feel-row"><FeelBadge value={p.feel} /></div>
         <TempCompare p={p} />
+        {/* AI 도우미 카드일 때만: AI 가 쓴 한 문장 조언 */}
+        {p.comment && <div className="small fw-semibold mt-2 card-comment">{p.comment}</div>}
       </Card.Body>
     </Card>
   )
@@ -75,6 +77,7 @@ export function PastModal({ open, url, onClose }) {
             </div>
             <div className="d-flex align-items-center gap-2 mb-2"><FeelBadge value={open.feel} /></div>
             <div className="mb-2"><TempCompare p={open} /></div>
+            {open.comment && <div className="fw-semibold mb-2"><i className="bi bi-lightbulb me-1" />{open.comment}</div>}
             {open.note && <p className="mb-0 note-text-full"><i className="bi bi-chat-left-text me-1 text-muted" />{open.note}</p>}
           </Modal.Body>
           <Modal.Footer>

@@ -63,9 +63,9 @@ export default async function handler(req, res) {
 
   try {
     const model = pickModel()
-    const { answer, toolsUsed } = await runAgent({ client: getAnthropic(), model, messages, ctx: { place } })
+    const { answer, toolsUsed, pastOutfits } = await runAgent({ client: getAnthropic(), model, messages, ctx: { place, db: supabase } })   // db: 이 사용자의 로그인 권한으로 만든 연결 → 내 기록만 읽을 수 있어요
     console.log(`[agent] model=${model} tools=${toolsUsed.join(',') || '없음'} place=${place?.label ?? '없음'}`)   // 문제가 생기면 Vercel Logs 에서 확인
-    res.status(200).json({ answer, remaining: q.left_count, toolsUsed })
+    res.status(200).json({ answer, remaining: q.left_count, toolsUsed, pastOutfits })   // pastOutfits: 카드로 보여줄 기록(사진 없음)
   } catch (e) {
     // 429 = Claude 호출 한도 초과, 401 = 키 오류
     res.status(e.status ?? 500).json({ error: e.status === 429 ? '사용량이 많아요. 1분 뒤 다시 시도하세요.' : e.message, remaining: q.left_count })

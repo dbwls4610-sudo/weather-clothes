@@ -4,7 +4,7 @@ import GarmentIcon from './GarmentIcon'
 // 추천 옷을 "그림 + 이름" 작은 카드로 보여줍니다
 export default function ClothesCards({ items }) {
   return (
-    <div className="d-flex flex-wrap gap-2">
+    <div className="d-flex flex-wrap gap-2 clothes-list">
       {items.map((item) => {
         const type = iconTypeOf(item)
         return (

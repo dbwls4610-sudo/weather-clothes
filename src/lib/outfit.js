@@ -97,14 +97,15 @@ export function recommendDay(day) {
 // 한 주 요약 — days: 그 주의 일별 예보 배열
 export function summarizeWeek(days) {
   if (!days.length) return null
-  const byMin = [...days].sort((a, b) => a.min - b.min)
-  const byMax = [...days].sort((a, b) => b.max - a.max)
+  // 가장 추운 날 / 따뜻한 날은 둘 다 "최고 기온"으로 비교해요 (하루의 대표 기온을 같은 기준으로 맞추려고)
+  const byMaxAsc = [...days].sort((a, b) => a.max - b.max)
+  const byMaxDesc = [...days].sort((a, b) => b.max - a.max)
   const wet = days.filter((d) => d.rain !== '없음' || d.pop >= 60)
   return {
-    coldest: byMin[0],     // 가장 추운 날 (최저기온 기준)
-    warmest: byMax[0],     // 가장 더운 날 (최고기온 기준)
+    coldest: byMaxAsc[0],   // 가장 추운 날 (최고기온이 가장 낮은 날)
+    warmest: byMaxDesc[0],  // 가장 따뜻한 날 (최고기온이 가장 높은 날)
     wetDays: wet,          // 우산이 필요한 날
-    gap: Math.max(...days.map((d) => d.max)) - Math.min(...days.map((d) => d.min)),
+    gap: byMaxDesc[0].max - byMaxAsc[0].max,   // 기간 기온 차: 가장 따뜻한 날의 최고 − 가장 추운 날의 최고 (위의 두 날과 같은 기준)
   }
 }
 

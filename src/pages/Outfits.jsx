@@ -33,11 +33,14 @@ export default function Outfits() {
     <>
       <PageHeader icon="grid" title="날씨별 옷차림" subtitle="기온에 따라 어떤 옷차림을 추천하는지 한눈에 볼 수 있어요. 아래로 내려갈수록 추워져요." />
 
-      <div className="mb-4 d-flex flex-wrap align-items-center gap-4">
-        <span className="text-muted small">날씨 조건 더해 보기</span>
-        <Form.Check type="switch" id="sw-rain" label="비 오는 날" checked={rain} onChange={(e) => setRain(e.target.checked)} />
-        <Form.Check type="switch" id="sw-wind" label="바람 센 날" checked={wind} onChange={(e) => setWind(e.target.checked)} />
-        <Form.Check type="switch" id="sw-gap" label="일교차 큰 날" checked={gap} onChange={(e) => setGap(e.target.checked)} />
+      {/* "날씨 조건 더해 보기" 안내 한 줄 아래에, 세 스위치를 한 줄로 */}
+      <div className="mb-4">
+        <div className="text-muted small mb-2">날씨 조건 더해 보기</div>
+        <div className="d-flex flex-nowrap align-items-center switch-row">
+          <Form.Check type="switch" id="sw-rain" label="비 오는 날" checked={rain} onChange={(e) => setRain(e.target.checked)} />
+          <Form.Check type="switch" id="sw-wind" label="바람 센 날" checked={wind} onChange={(e) => setWind(e.target.checked)} />
+          <Form.Check type="switch" id="sw-gap" label="일교차 큰 날" checked={gap} onChange={(e) => setGap(e.target.checked)} />
+        </div>
       </div>
 
       <Row>

@@ -83,6 +83,7 @@ export const useAppStore = create((set, get) => ({
   hasLastPlace: lastPlace !== null,   // 전에 본 지역이 있으면 홈을 열 때 날씨를 자동으로 불러옴
   myCoords: null,        // 마지막으로 확인한 내 위치 { lat, lon } — AI 도우미에게 "지금 보는 지역"을 알려줄 때 씀
   weatherPlace: 'mine',  // 지금 화면에 보이는 날씨의 지역 (고르기만 한 지역과 구분)
+  weatherAt: null,       // 날씨를 불러온 시각 (밀리초) — 오래된 날씨를 다시 불러올지 판단하고 화면에 보여줘요
   selectPlace: (place) => set({ place }),   // 지역을 고르기만 함 — 날씨는 loadWeather 를 눌러야 불러옴
   loadWeather: async () => {
     if (get().weatherLoading) return   // 이미 불러오는 중이면 또 부르지 않음
@@ -94,7 +95,7 @@ export const useAppStore = create((set, get) => ({
     const spot = placeById(place)
     if (spot) {
       try {
-        set({ weather: await fetchWeather(spot.lat, spot.lon), weatherPlace: place })
+        set({ weather: await fetchWeather(spot.lat, spot.lon), weatherPlace: place, weatherAt: Date.now() })
       } catch (e) {
         set({ weatherError: e.message })
       } finally {
@@ -108,7 +109,7 @@ export const useAppStore = create((set, get) => ({
       async ({ coords }) => {
         try {
           set({ myCoords: { lat: coords.latitude, lon: coords.longitude } })
-          set({ weather: await fetchWeather(coords.latitude, coords.longitude), weatherPlace: 'mine' })
+          set({ weather: await fetchWeather(coords.latitude, coords.longitude), weatherPlace: 'mine', weatherAt: Date.now() })
         } catch (e) {
           set({ weatherError: e.message })
         } finally {

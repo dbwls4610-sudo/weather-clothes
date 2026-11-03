@@ -245,6 +245,8 @@ export default function MyPage() {
   const [busy, setBusy] = useState(false)
   const [view, setView] = useState('calendar')   // 'calendar' | 'list'
   const [adding, setAdding] = useState(null)     // 사진을 새로 올리려는 날짜 ("2026-11-01")
+  const [selecting, setSelecting] = useState(false)   // 목록에서 여러 장 골라 지우는 중
+  const [selected, setSelected] = useState(() => new Set())   // 고른 기록의 날짜들
 
   useEffect(() => {
     if (!user || !supabase) return
@@ -305,6 +307,32 @@ export default function MyPage() {
     }
   }
 
+  // 목록에서 고른 기록들을 한꺼번에 지우기
+  const toggleSelect = (date) => setSelected((s) => {
+    const next = new Set(s)
+    if (next.has(date)) next.delete(date)
+    else next.add(date)
+    return next
+  })
+  const exitSelect = () => { setSelecting(false); setSelected(new Set()) }
+  const removeSelected = async () => {
+    const targets = logs.filter((l) => selected.has(l.log_date))
+    if (!targets.length || !window.confirm(`선택한 ${targets.length}장을 지울까요? 되돌릴 수 없어요.`)) return
+    setBusy(true)
+    try {
+      await supabase.storage.from(PHOTO_BUCKET).remove(targets.map((l) => l.photo_path))
+      const { error: e } = await supabase.from('outfit_logs').delete().in('log_date', targets.map((l) => l.log_date))
+      if (e) throw e
+      setLogs((all) => all.filter((l) => !selected.has(l.log_date)))
+      toast(`${targets.length}장을 지웠어요`)
+      exitSelect()
+    } catch (e) {
+      toast(e.message, 'danger')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   if (!isSupabaseReady) return <Alert variant="warning">Supabase 설정이 없어서 마이페이지를 쓸 수 없어요.</Alert>
   if (!authReady) return <Spinner />
   if (!user) {
@@ -321,7 +349,7 @@ export default function MyPage() {
 
   return (
     <>
-      <PageHeader icon="person-circle" title="마이페이지" subtitle={`${user.email} · 내가 올린 옷 사진을 날씨와 함께 모아 봤어요.`} />
+      <PageHeader icon="person-circle" title="마이페이지" aside={user.email} subtitle="내가 올린 옷 사진을 날씨와 함께 모아 봤어요." />
 
       {error && <Alert variant="danger">{error}</Alert>}
       {logs === null && <Spinner />}
@@ -337,7 +365,7 @@ export default function MyPage() {
           <div className="d-flex align-items-center justify-content-between mb-3">
             <span className="small text-muted">모두 {logs.length}장</span>
             <ButtonGroup size="sm" aria-label="보기 방식">
-              <Button variant={view === 'calendar' ? 'primary' : 'outline-primary'} onClick={() => setView('calendar')}>
+              <Button variant={view === 'calendar' ? 'primary' : 'outline-primary'} onClick={() => { setView('calendar'); exitSelect() }}>
                 <i className="bi bi-calendar3 me-1" />달력
               </Button>
               <Button variant={view === 'list' ? 'primary' : 'outline-primary'} onClick={() => setView('list')}>
@@ -365,6 +393,24 @@ export default function MyPage() {
 
       {logs?.length > 0 && view === 'list' && (
         <>
+          <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
+            {selecting ? (
+              <>
+                <span className="small fw-bold me-auto">{selected.size}장 선택됨</span>
+                <Button variant="outline-secondary" size="sm" onClick={() => setSelected(selected.size === logs.length ? new Set() : new Set(logs.map((l) => l.log_date)))} disabled={busy}>
+                  {selected.size === logs.length ? '선택 해제' : '모두 선택'}
+                </Button>
+                <Button variant="danger" size="sm" onClick={removeSelected} disabled={busy || selected.size === 0}>
+                  <i className="bi bi-trash me-1" />지우기
+                </Button>
+                <Button variant="outline-secondary" size="sm" onClick={exitSelect} disabled={busy}>취소</Button>
+              </>
+            ) : (
+              <Button variant="outline-secondary" size="sm" className="ms-auto" onClick={() => setSelecting(true)}>
+                <i className="bi bi-check2-square me-1" />선택
+              </Button>
+            )}
+          </div>
           {/* 연도마다 제목 줄을 먼저 두고, 그 아래 줄부터 카드를 배열해요 (카드마다 제목을 끼우면 첫 카드가 밀려서 줄이 어긋남) */}
           {yearGroups(logs).map(({ year, items }) => (
             <section key={year} className="mb-4">
@@ -372,8 +418,15 @@ export default function MyPage() {
               <Row xs={1} sm={2} lg={3} className="g-3">
                 {items.map((log) => (
                   <Col key={log.log_date}>
-                    <Card className="h-100">
-                      <button type="button" className="my-photo-btn" onClick={() => setOpen(log)} aria-label={`${dayLabel(toYmd(log.log_date))} 사진 크게 보기`}>
+                    <Card className={`h-100 position-relative${selecting && selected.has(log.log_date) ? ' border-danger border-2' : ''}`}>
+                      {selecting && (
+                        <Form.Check
+                          type="checkbox" className="position-absolute top-0 start-0 m-2 fs-4" style={{ zIndex: 2 }}
+                          checked={selected.has(log.log_date)} onChange={() => toggleSelect(log.log_date)}
+                          aria-label={`${dayLabel(toYmd(log.log_date))} 선택`}
+                        />
+                      )}
+                      <button type="button" className="my-photo-btn" onClick={() => (selecting ? toggleSelect(log.log_date) : setOpen(log))} aria-label={`${dayLabel(toYmd(log.log_date))} 사진 크게 보기`}>
                         {log.url ? <img src={log.url} alt={`${log.log_date} 입은 옷`} className="my-photo" /> : <div className="my-photo d-flex align-items-center justify-content-center text-muted">사진 없음</div>}
                       </button>
                       <Card.Body>

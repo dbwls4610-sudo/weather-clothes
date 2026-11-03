@@ -170,7 +170,7 @@ async function getShort(nx, ny) {
   const tomorrow = ymd(new Date(kstNow().getTime() + 24 * 3600e3))
   const tomorrowHours = all.filter((h) => h.time.startsWith(tomorrow))   // 내일 0~23시 (시간별)
   const todayHours = all.filter((h) => h.time.startsWith(today))   // 오늘 하루 (지난 시간 포함, 오전/오후 요약용)
-  return { hours: hours.length ? hours : all.slice(0, 12), todayHours, tomorrowHours, days }
+  return { hours: hours.length ? hours : all.slice(0, 12), todayHours, tomorrowHours, days, base: { date: base.base_date, time: base.base_time } }
 }
 
 // 중기예보 → 일별 (4 ~ 10일 후)
@@ -226,5 +226,5 @@ export async function getWeather({ lat, lon }) {
   } catch (e) {
     midError = e.message
   }
-  return { nx, ny, hours: short.hours, todayHours: short.todayHours, tomorrowHours: short.tomorrowHours, days, midRegion, midError }
+  return { nx, ny, hours: short.hours, todayHours: short.todayHours, tomorrowHours: short.tomorrowHours, days, midRegion, midError, forecastBase: short.base }
 }

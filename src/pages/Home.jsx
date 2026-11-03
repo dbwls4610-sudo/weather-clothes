@@ -11,8 +11,16 @@ import { ping } from '../api/client'
 import { isSupabaseReady } from '../lib/supabase'
 import { recommendDay, recommendOutfit } from '../lib/outfit'
 import { findTomorrow, splitWeeks, todaySnapshot, tomorrowSnapshot } from '../lib/weather'
-import { placeLabel } from '../lib/places'
+import { nearestPlace, placeLabel } from '../lib/places'
 import { useAppStore } from '../store/useAppStore'
+
+// 화면에 보여줄 지역 이름. "내 위치"는 어느 동네로 잡혔는지(또는 제주 밖인지)까지 알려줘요 — PC 는 위치가 부정확할 수 있어서 확인이 필요해요
+function areaName(weatherPlace, myCoords) {
+  if (weatherPlace !== 'mine') return placeLabel(weatherPlace)
+  if (!myCoords) return '내 위치'
+  const near = nearestPlace(myCoords.lat, myCoords.lon)
+  return near ? `내 위치 (${placeLabel(near.id)} 근처)` : '내 위치 (제주 밖으로 잡혔어요)'
+}
 
 export default function Home() {
   const weather = useAppStore((s) => s.weather)
@@ -23,10 +31,15 @@ export default function Home() {
   const place = useAppStore((s) => s.place)
   const weatherPlace = useAppStore((s) => s.weatherPlace)
   // 전에 본 지역이 있으면 홈을 열 때 바로 날씨를 불러옵니다 (이미 불러온 날씨가 있으면 그대로)
+  // 이미 불러온 날씨가 30분 넘게 지났으면(탭을 오래 열어 둔 경우) 보고 있던 지역으로 다시 불러와요 — 기기마다 예보 시점이 달라 보이는 것을 막으려고요
   useEffect(() => {
     const s = useAppStore.getState()
-    if (s.hasLastPlace && !s.weather && !s.weatherLoading) s.loadWeather()
+    if (s.weatherLoading) return
+    if (s.hasLastPlace && !s.weather) s.loadWeather()
+    else if (s.weather && s.weatherAt && Date.now() - s.weatherAt > 30 * 60 * 1000) { s.selectPlace(s.weatherPlace); s.loadWeather() }
   }, [])
+  const myCoords = useAppStore((s) => s.myCoords)
+  const weatherAt = useAppStore((s) => s.weatherAt)
   const [tab, setTab] = useState('today')  // 'today' | 'tomorrow' | 'thisWeek' | 'nextWeek'
   const outfit = weather && recommendOutfit(weather.hours)
   // 사진과 함께 저장하고, 비슷한 날의 옷을 고르는 데 쓰는 오늘 날씨
@@ -52,7 +65,12 @@ export default function Home() {
       {weather && (
         <>
           <div className="fw-bold mb-2"><i className="bi bi-geo-alt-fill me-1 text-primary" />
-            {weatherPlace === 'mine' ? '내 위치' : placeLabel(weatherPlace)}
+            {areaName(weatherPlace, myCoords)}
+          </div>
+          {/* 어느 시점의 예보인지: 기기마다 불러온 시각이 다르면 추천이 달라 보일 수 있어서 보여줘요 */}
+          <div className="small text-muted mb-2">
+            {weather.forecastBase && `기상청 ${Number(weather.forecastBase.date.slice(4, 6))}/${Number(weather.forecastBase.date.slice(6, 8))} ${Number(weather.forecastBase.time.slice(0, 2))}시 발표 기준`}
+            {weatherAt && ` · ${new Date(weatherAt).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}에 불러옴`}
           </div>
           <Nav variant="pills" className="mb-3" activeKey={tab} onSelect={setTab}>
             {/* as="button": 주소를 바꾸는 링크가 아니라 화면 안에서만 바뀌는 버튼 */}

@@ -10,6 +10,40 @@ export function iconOf({ sky, rain }) {
   return 'clouds'
 }
 
+// 일출·일몰 시각 (한국 시간, 분 단위: 6시 30분 = 390). 날짜와 위치만으로 계산하는 천문 공식(NOAA)이라 따로 API 가 필요 없어요.
+// 위치는 제주 가운데 근처 — 제주 안에서는 동네마다 1~2분 차이라 하나로 충분해요.
+export function sunTimes(ymd, lat = 33.5, lon = 126.53) {
+  const rad = Math.PI / 180
+  const y = Number(ymd.slice(0, 4)), m = Number(ymd.slice(4, 6)), d = Number(ymd.slice(6, 8))
+  const dayOfYear = Math.round((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 0)) / 86400000)
+  const g = (2 * Math.PI / 365) * (dayOfYear - 1)                                           // 연중 각도
+  const eqTime = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g))   // 태양시 보정(분)
+  const decl = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g)   // 태양 적위
+  const cosHa = Math.cos(90.833 * rad) / (Math.cos(lat * rad) * Math.cos(decl)) - Math.tan(lat * rad) * Math.tan(decl)
+  const ha = Math.acos(Math.max(-1, Math.min(1, cosHa))) / rad                                // 낮 길이의 절반(도)
+  const noonUtc = 720 - 4 * lon - eqTime                                                      // 정오(UTC 분)
+  return { rise: Math.round(noonUtc - 4 * ha + 540), set: Math.round(noonUtc + 4 * ha + 540) }   // +540 = 한국 시간
+}
+
+// 시간별 카드의 아이콘: 낮에는 해, 밤에는 달(일출·일몰 기준), 일출·일몰이 있는 시간에는 일출/일몰 아이콘
+// 돌려주는 값: { icon: 아이콘 이름, kind: 'day' | 'night' | 'sunrise' | 'sunset', title: 설명(일출/일몰 시각) }
+// 비·눈이 오는 시간은 날씨 아이콘을 그대로 쓰고(비가 더 중요한 정보), 밤인지만 kind 로 알려 줘요.
+const hhmm = (min) => `${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')}`
+export function hourIconOf(h) {
+  const [ymd, hhmmStr] = h.time.split(' ')
+  const hour = Number(hhmmStr.slice(0, 2))
+  const { rise, set } = sunTimes(ymd)
+  const from = hour * 60
+  const to = from + 60
+  const night = from + 30 < rise || from + 30 >= set        // 그 시간의 한가운데가 일출 전이거나 일몰 뒤면 밤
+  const base = iconOf(h)
+  if (base === 'cloud-rain' || base === 'cloud-snow') return { icon: base, kind: night ? 'night' : 'day' }
+  if (rise >= from && rise < to) return { icon: 'sunrise', kind: 'sunrise', title: `일출 ${hhmm(rise)}` }
+  if (set >= from && set < to) return { icon: 'sunset', kind: 'sunset', title: `일몰 ${hhmm(set)}` }
+  if (!night) return { icon: base, kind: 'day' }
+  return { icon: { sun: 'moon-stars', 'cloud-sun': 'cloud-moon' }[base] ?? base, kind: 'night' }   // 맑음→달과 별, 구름 조금→구름 낀 달, 흐림은 구름 그대로
+}
+
 const DOW = ['일', '월', '화', '수', '목', '금', '토']
 
 // "20261103" → Date (현지 날짜)

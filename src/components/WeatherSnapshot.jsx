@@ -8,6 +8,12 @@ export default function WeatherSnapshot({ w }) {
   // 지난 날짜에 나중에 올린 사진은 그날 날씨를 알 수 없어서 비어 있어요
   if (!hasDay && w.temp == null) return <div className="small text-muted"><i className="bi bi-cloud-slash me-1" />이 날의 날씨는 기록되지 않았어요</div>
 
+  const weatherLine = [
+    hasDay && (w.rain !== '없음' ? w.rain : w.sky),
+    hasDay && w.pop != null && `강수확률 ${w.pop}%`,
+    w.wind != null && `바람 ${w.wind}m/s`,
+  ].filter(Boolean).join(', ')
+
   return (
     <div className="d-flex align-items-center">
       {hasDay && <i className={`bi bi-${iconOf(w)} display-5 text-primary me-3`} />}
@@ -18,12 +24,10 @@ export default function WeatherSnapshot({ w }) {
             : <span className="fs-5 fw-bold">{w.temp}℃</span>}
           {w.label && <TempBadge label={w.label} />}
         </div>
+        {/* 장소 한 줄, 그 아래에 "구름많음, 강수확률 30%, 바람 3.5m/s" 를 한 줄로 */}
         <div className="small text-muted">
-          {w.place}
-          {hasDay && ` · ${w.rain !== '없음' ? w.rain : w.sky}`}
-          {hasDay && w.pop != null && ` · 강수확률 ${w.pop}%`}
-          {w.wind != null && ` · 바람 ${w.wind}m/s`}
-          {w.station && ` · ${w.station} 관측소 관측값`}
+          {w.place && <div>{w.place}</div>}
+          {weatherLine && <div className="snap-weather">{weatherLine}</div>}
         </div>
         {(w.am || w.pm) && (
           <div className="small mt-1 d-flex flex-wrap gap-3">
